@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile | Lumina</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav>
+    <div class="container nav-container">
+    <a href="index.html" class="logo">
+      <i class="fas fa-gem"></i> Lumina
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="cart.html">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-count">0</span>
+      </a>
+      <a href="#" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </div>
+    </div>
+  </nav>
+
+  <main class="profile-container">
+    <h2>My Profile</h2>
+    
+    <div class="profile-info">
+      <p><strong>Username:</strong> <span id="username"></span></p>
+      <div class="address-section">
+        <p><strong>Address:</strong> <span id="addressText">No address saved</span></p>
+        <button onclick="toggleAddressEdit()" class="edit-btn">
+          <i class="fas fa-edit"></i> Edit Address
+        </button>
+      </div>
+    </div>
+
+    <div id="editAddressSection" style="display: none;">
+      <h4><i class="fas fa-home"></i> Edit Address</h4>
+      <form id="addressForm">
+        <input type="text" id="house" placeholder="House No & Street" required>
+        <input type="text" id="city" placeholder="City" required>
+        <input type="text" id="pincode" placeholder="Pincode" required>
+        <input type="text" id="state" placeholder="State" required>
+        <input type="text" id="country" placeholder="Country" required>
+        <button type="submit">
+          <i class="fas fa-save"></i> Save Address
+        </button>
+      </form>
+    </div>
+
+    <h3><i class="fas fa-history"></i> Order History</h3>
+    <div id="ordersContainer">
+      <div class="no-orders">
+        <i class="fas fa-box-open"></i>
+        <p>You haven't placed any orders yet</p>
+        <a href="collection.html" class="btn btn-primary">Start Shopping</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="profile.js"></script>
+</body>
+</html>

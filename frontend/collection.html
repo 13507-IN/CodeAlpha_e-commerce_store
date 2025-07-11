@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Products | Lumina</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="collections-page">
+
+    <nav>
+        <div class="container nav-container">
+       <a href="index.html" class="logo">
+      <i class="fas fa-gem"></i> Lumina
+       </a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="/frontend/login.html" id="login-link">Login</a>
+      <a href="cart.html">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-count">0</span>
+      </a>
+      <a href="#" id="logout-link" style="display: none;">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </div>
+ </div>
+  </nav>
+
+  <div class="search-bar">
+  <input type="text" id="searchInput" placeholder="Search products..." />
+  <!-- <a href="#" class="search-btn">
+    <i class="fas fa-search"></i> -->
+  </div>
+
+  <main>
+    <h1 class="page-title">Our Collection</h1>
+    
+    <div class="collection-controls">
+      <div class="filter-group">
+        <button class="filter-btn active">All</button>
+        <button class="filter-btn">Featured</button>
+        <button class="filter-btn">New Arrivals</button>
+        <button class="filter-btn">On Sale</button>
+      </div>
+      
+      <select class="sort-select">
+        <option value="default">Sort by: Default</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="rating">Highest Rated</option>
+      </select>
+    </div>
+    
+    <div id="products" class="product-grid"></div>
+  </main>
+
+  <script src="/frontend/collection.js"></script>
+  <script>
+    // Update cart count on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      document.querySelector('.cart-count').textContent = totalItems;
+    });
+
+     const token = localStorage.getItem('token');
+  const loginLink = document.getElementById('login-link');
+  const registerLink = document.getElementById('register-link');
+  const logoutLink = document.getElementById('logout-link');
+
+  if (token) {
+    loginLink.style.display = 'none';
+    // registerLink.style.display = 'none';
+    logoutLink.style.display = 'inline-block';
+  }
+
+  logoutLink.addEventListener('click', () => {
+    localStorage.removeItem('token');
+    alert('Logged out successfully!');
+    window.location.href = 'index.html';
+  });
+
+  </script>
+ 
+
+</body>
+</html>

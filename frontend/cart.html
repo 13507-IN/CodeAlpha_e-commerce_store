@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Your Cart | Lumina</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <nav>
+    <div class="container nav-container">
+    <a href="index.html" class="logo">
+      <i class="fas fa-gem"></i>
+      Lumina
+    </a> <br>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="/frontend/collection.html">Collections</a>
+      <a href="/frontend/login.html" id="login-link">Login</a>
+      <a href="cart.html" class="active">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-count">0</span>
+      </a>
+      <a href="#" id="logout-link" style="display: none;">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </div>
+    </div>
+  </nav>
+
+  <main class="cart-container">
+    <h1 class="cart-title">Your Shopping Cart</h1>
+    
+    <div id="cart-items" class="cart-items">
+      <!-- Cart items will be dynamically inserted here -->
+      <div class="empty-cart">
+        <i class="fas fa-shopping-cart"></i>
+        <p>Your cart is empty</p>
+        <a href="index.html" class="btn btn-primary">Continue Shopping</a>
+      </div>
+    </div>
+    
+    <div class="cart-summary">
+      <div class="summary-card">
+        <h3>Order Summary</h3>
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="subtotal">₹0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>Shipping</span>
+          <span>Free</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span id="totalPrice">₹0.00</span>
+        </div>
+        <button class="btn btn-primary checkout-btn" onclick="checkout()">Proceed to Checkout</button>
+      </div>
+    </div>
+  </main>
+
+  <div id="addressModal" class="modal">
+  <div class="modal-content">
+    <h2>Enter Delivery Address</h2>
+    <form id="addressForm">
+      <input type="text" name="house" placeholder="House No. / Street" required />
+      <input type="text" name="city" placeholder="City" required />
+      <input type="text" name="pincode" placeholder="Pincode" required />
+      <input type="text" name="state" placeholder="State" required />
+      <input type="text" name="country" placeholder="Country" required />
+      <button type="submit" class="btn btn-primary">Save & Continue</button>
+    </form>
+  </div>
+  </div>
+
+
+  <script>
+    let userAddress = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadCart();
+
+      const token = localStorage.getItem('token');
+      if (token) {
+      try {
+        const res = await fetch('http://localhost:5000/api/users/address', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+       });
+
+      const data = await res.json();
+      if (res.ok && data.address) {
+        userAddress = data.address;
+      }
+    } catch (err) {
+      console.error('Error fetching address:', err);
+    }
+    }
+    });
+
+    function loadCart() {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const container = document.getElementById('cart-items');
+      const subtotalEl = document.getElementById('subtotal');
+      const totalEl = document.getElementById('totalPrice');
+      let total = 0;
+
+      updateCartCount(cart);
+
+      if (cart.length === 0) {
+        showEmptyCart(container);
+        return;
+      }
+
+      container.innerHTML = ''; // Clear the empty cart message
+
+      cart.forEach(p => {
+        const quantity = p.quantity || 1;
+        const itemTotal = p.price * quantity;
+        total += itemTotal;
+        
+        const cartItem = document.createElement('div');
+        cartItem.className = 'cart-item';
+        cartItem.innerHTML = `
+          <div class="item-image">
+            <img src="${p.image}" alt="${p.title}" />
+          </div>
+          <div class="item-details">
+            <h3>${p.title}</h3>
+            <div class="item-price">₹${p.price.toFixed(2)}</div>
+            <div class="item-quantity">
+              <button class="quantity-btn" onclick="updateQuantity('${p._id}', -1)">
+                <i class="fas fa-minus"></i>
+              </button>
+              <span>${quantity}</span>
+              <button class="quantity-btn" onclick="updateQuantity('${p._id}', 1)">
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+          </div>
+          <div class="item-total">₹${itemTotal.toFixed(2)}</div>
+          <button class="remove-item" onclick="removeItem('${p._id}')">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+        container.appendChild(cartItem);
+      });
+
+      subtotalEl.textContent = `₹${total.toFixed(2)}`;
+      totalEl.textContent = `₹${total.toFixed(2)}`;
+    }
+
+    function updateCartCount(cart) {
+      const cartCount = document.querySelector('.cart-count');
+      const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      cartCount.textContent = totalItems;
+      cartCount.style.display = totalItems > 0 ? 'flex' : 'none';
+    }
+
+    function showEmptyCart(container) {
+      container.innerHTML = `
+        <div class="empty-cart">
+          <i class="fas fa-shopping-cart"></i>
+          <p>Your cart is empty</p>
+          <a href="index.html" class="btn btn-primary">Continue Shopping</a>
+        </div>
+      `;
+    }
+
+    function updateQuantity(productId, change) {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const itemIndex = cart.findIndex(item => item._id === productId);
+      
+      if (itemIndex !== -1) {
+        // Ensure quantity doesn't go below 1 unless removing
+        if (change === -1 && cart[itemIndex].quantity <= 1) {
+          removeItem(productId);
+          return;
+        }
+        
+        cart[itemIndex].quantity = (cart[itemIndex].quantity || 1) + change;
+        localStorage.setItem('cart', JSON.stringify(cart));
+        loadCart(); // Refresh cart display without full page reload
+      }
+    }
+
+    function removeItem(productId) {
+      const cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const updatedCart = cart.filter(item => item._id !== productId);
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+      loadCart(); // Refresh cart display without full page reload
+      
+      // Show removal feedback
+      showToast('Item removed from cart', 'info');
+    }
+
+  async function checkout() {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showToast('Please login first', 'error');
+    setTimeout(() => window.location.href = 'login.html', 1500);
+    return;
+  }
+
+  const cart = JSON.parse(localStorage.getItem('cart') || []);
+  if (cart.length === 0) {
+    showToast('Your cart is empty', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch('http://localhost:5000/api/users/address', {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.address) {
+      // ✅ Address exists, proceed to order
+     const address = data.address || {};
+      document.querySelector('input[name="house"]').value = address.house || '';
+      document.querySelector('input[name="city"]').value = address.city || '';
+      document.querySelector('input[name="pincode"]').value = address.pincode || '';
+      document.querySelector('input[name="state"]').value = address.state || '';
+      document.querySelector('input[name="country"]').value = address.country || '';
+
+      // 👇 Show modal to let user confirm/edit
+      document.getElementById('addressModal').style.display = 'flex';
+    } else {
+      // ❌ No address found, show address form
+      throw new Error(data.message || 'Unable to fetch address');
+      document.getElementById('addressModal').style.display = 'flex';
+    }
+  } catch (error) {
+    console.error('Address fetch failed:', error);
+    document.getElementById('addressModal').style.display = 'flex';
+  }
+}
+
+
+    document.getElementById('addressForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const address = {
+      house: formData.get('house'),
+      city: formData.get('city'),
+      pincode: formData.get('pincode'),
+      state: formData.get('state'),
+      country: formData.get('country')
+    };
+
+    const token = localStorage.getItem('token');
+  try {
+    await fetch('http://localhost:5000/api/users/address', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(address)
+    });
+
+    userAddress = address;
+    document.getElementById('addressModal').style.display = 'none';
+    placeOrder(address);
+  } catch (err) {
+    showToast('Failed to save address', 'error');
+  }
+  });
+
+
+    async function placeOrder(address) {
+    const token = localStorage.getItem('token');
+    const cart = JSON.parse(localStorage.getItem('cart'));
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const userId = payload.id;
+    const total = cart.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
+    
+     await fetch('http://localhost:5000/api/users/address', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(address)
+    });
+
+    const response = await fetch('http://localhost:5000/api/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        userId,
+        products: cart,
+        total,
+        address
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      showToast(errorData.message || 'Failed to place order', 'error');
+      return;
+    }
+
+    showToast('Order placed successfully!', 'success');
+    localStorage.removeItem('cart');
+    updateCartCount([]);
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 1500);
+  }
+
+  function prefillAddressForm(address) {
+  const form = document.getElementById('addressForm');
+  if (!form || !address) return;
+
+  form.house.value = address.house || '';
+  form.city.value = address.city || '';
+  form.pincode.value = address.pincode || '';
+  form.state.value = address.state || '';
+  form.country.value = address.country || '';
+}
+
+    function showToast(message, type = 'success') {
+      // Remove existing toasts to prevent stacking
+      const existingToasts = document.querySelectorAll('.toast');
+      existingToasts.forEach(toast => toast.remove());
+      
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' 
+          : type === 'error' ? 'fa-exclamation-circle' 
+          : 'fa-info-circle'}"></i>
+        <span>${message}</span>
+      `;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 10);
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 3000);
+    }
+</script>
+
+<script>
+  const token = localStorage.getItem('token');
+  const loginLink = document.getElementById('login-link');
+  const registerLink = document.getElementById('register-link');
+  const logoutLink = document.getElementById('logout-link');
+
+  if (token) {
+    loginLink.style.display = 'none';
+    // registerLink.style.display = 'none';
+    logoutLink.style.display = 'inline-block';
+  }
+
+  logoutLink.addEventListener('click', () => {
+    localStorage.removeItem('token');
+    alert('Logged out successfully!');
+    window.location.href = 'index.html';
+  });
+</script>
+
+
+</body>
+</html>

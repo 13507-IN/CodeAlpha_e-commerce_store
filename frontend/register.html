@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register | Lumina</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="register-page">
+  <div class="register-container">
+    <h1>Create Account</h1>
+    <form id="registerForm" class="register-form">
+      <div class="register-input-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Choose a username" required>
+        <i class="fas fa-user"></i>
+      </div>
+
+       <div class="register-input-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="Enter your email" required>
+        <i class="fas fa-info-circle"></i>
+      </div>
+
+      <!-- <div class="register-input-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" placeholder="Enter Your full Name" required>
+        <i class="fas fa-user"></i>
+      </div> -->
+      
+      <div class="register-input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Create a password" required>
+        <i class="fas fa-lock"></i>
+        <div class="password-strength">Use 8+ characters with mix of letters and numbers</div>
+      </div>
+      
+      <button type="submit" class="register-btn">Register</button>
+    </form>
+    
+    <p class="login-link">
+      Already have an account? <a href="login.html">Login here</a>
+    </p>
+  </div>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch('http://localhost:5000/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert('Registration successful!');
+          window.location.href = 'login.html';
+        } else {
+          alert(data.message || 'Registration failed!');
+        }
+      } catch (error) {
+        alert('An error occurred. Please try again.');
+      }
+    });
+  </script>
+</body>
+</html>
