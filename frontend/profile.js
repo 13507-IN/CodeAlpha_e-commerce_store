@@ -82,6 +82,7 @@ document.getElementById('addressForm').addEventListener('submit', async (e) => {
     toggleAddressEdit(); // Hide the form after saving
     showToast('Address updated successfully!', 'success');
   } catch (err) {
+    console.error('Error updating address:', err);
     showToast('Error updating address', 'error');
   } finally {
     submitBtn.disabled = false;

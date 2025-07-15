@@ -66,10 +66,15 @@ router.get('/profile', auth, async (req, res) => {
 // });
 
 router.put('/update-address', auth, async (req, res) => {
-  const user = await User.findById(req.user.id);
+  try{
+  const user = await User.findById(req.userId);
   user.address = req.body.address;
   await user.save();
   res.json({ message: 'Address updated', address: user.address });
+  } catch (err) {
+    console.error('Error updating address:', err);
+    res.status(500).json({ message: 'Failed to update address' });
+  }
 });
 
 
